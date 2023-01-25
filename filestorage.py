@@ -1,4 +1,5 @@
 from flask import Flask
+import os
 
 app = Flask(__name__)
 
@@ -19,3 +20,7 @@ a new module, e.g. v2, and register its blueprint:
 from api.v2 import api as api_v2
 app.register_blueprint(api_v2, url_prefix='/v2')
 """
+
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=5000)
