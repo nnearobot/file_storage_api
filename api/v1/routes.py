@@ -1,38 +1,31 @@
+from api.v1.messages import Message
 import os
-from flask import Flask, jsonify, request
-from api.model.messages import Message
+from flask import Blueprint, current_app, jsonify, request
 from werkzeug.utils import secure_filename
 import http.client
 
-UPLOAD_FOLDER = 'files'
-MAX_CONTENT_LENGTH = 16 * 1000 * 1000
+
+api = Blueprint('api', __name__)
+
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
-
-
+upload_folder = current_app.config['UPLOAD_FOLDER']
 
 # Root of the app
-@app.route("/")
+@api.route("/")
 def filestorage():
     return Message.HELLO.value
 
 
-
-
 # List all files
-@app.route('/files', methods=['GET'])
+@api.route('/files', methods=['GET'])
 def get_filelist():
-    dir_list = os.listdir(app.config['UPLOAD_FOLDER'])
+    dir_list = os.listdir(upload_folder)
     return jsonify(dir_list)
 
 
-
-
 # Upload file
-@app.route('/files', methods=['POST'])
+@api.route('/files', methods=['POST'])
 def upload_file():
     # check if the request has the file:
     if 'file' not in request.files:
@@ -47,27 +40,24 @@ def upload_file():
     if ext not in ALLOWED_EXTENSIONS:
         return Message.BAD_EXTENTION.value.format(ext), http.client.UNPROCESSABLE_ENTITY
 
-    dir_list = os.listdir(app.config['UPLOAD_FOLDER'])
+    dir_list = os.listdir(upload_folder)
     if filename in dir_list:
         return Message.FILE_EXISTS.value.format(filename), http.client.UNPROCESSABLE_ENTITY
 
-    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    file.save(os.path.join(upload_folder, filename))
     return Message.UPLOADED_SUCCESSFULLY.value.format(filename), http.client.CREATED
 
 
-
-
-
 # Delete file
-@app.route('/files/<name>', methods=['DELETE'])
+@api.route('/files/<name>', methods=['DELETE'])
 def delete_file(name):
     if name == "":
         return Message.UNKNOWN_FILENAME.value, http.client.BAD_REQUEST
 
-    dir_list = os.listdir(app.config['UPLOAD_FOLDER'])
+    dir_list = os.listdir(upload_folder)
     if name not in dir_list:
         return Message.NOT_EXIST.value.format(name), http.client.NOT_FOUND
 
-    path = os.path.join(app.config['UPLOAD_FOLDER'], name)
+    path = os.path.join(upload_folder, name)
     os.remove(path)
     return Message.DELEATED.value.format(name), http.client.NO_CONTENT
