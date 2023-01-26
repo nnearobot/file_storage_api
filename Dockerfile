@@ -1,18 +1,18 @@
 FROM python:3.8-alpine
 
 RUN apk update
+RUN apk add nginx
+
 RUN pip3 install --no-cache-dir pipenv
+RUN pip3 install uwsgi
 
 WORKDIR /usr/src/app
-COPY Pipfile Pipfile.lock ./
+COPY Pipfile Pipfile.lock uwsgi.ini start.sh ./
 COPY api ./api
-RUN mkdir -p /usr/src/app/files
+COPY nginx.conf /etc/nginx/
 
 RUN pipenv install --system --deploy
 
-EXPOSE 5000
+EXPOSE 80
 
-
-ENTRYPOINT ["python3"]
-
-CMD ["filestorage.py"]
+ENTRYPOINT ["/usr/src/app/start.sh"]
