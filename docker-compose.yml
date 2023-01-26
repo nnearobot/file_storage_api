@@ -4,8 +4,8 @@ services:
     'filestorage':
       build: ./
       container_name: filestorage-api
-      working_dir: /usr/src/app
+      working_dir: /srv/filestorage_api
       volumes:
-        - ./:/usr/src/app
+        - ./:/srv/filestorage_api
       ports:
         - "80:80"
