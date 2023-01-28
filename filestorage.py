@@ -3,7 +3,7 @@ import os
 
 app = Flask(__name__)
 
-# Limit uploaded file size, M
+# Limit uploaded file size, M. If need more than 2048M, change the ./nginx conf: client_max_body_size 2048M;
 max_file_size = 50
 
 # List of the allowe file extensions, i.g. {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}

@@ -50,6 +50,7 @@ def upload_file():
         return Message.UPLOADED_SUCCESSFULLY.value.format(filename), http.client.CREATED
     except werkzeug.exceptions.RequestEntityTooLarge:
         fileSizeM = maxFileSize / (1024 * 1024)
+        api.logger.warning('fileSizeM: %d', fileSizeM)
         return Message.TOO_LARGE.value.format(filename, fileSizeM), http.client.REQUEST_ENTITY_TOO_LARGE
     
 
