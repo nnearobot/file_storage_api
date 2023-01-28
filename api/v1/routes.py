@@ -1,15 +1,16 @@
 from api.v1.messages import Message
 import os
 from flask import Blueprint, current_app, jsonify, request
+import werkzeug.exceptions
 from werkzeug.utils import secure_filename
 import http.client
 
 
 api = Blueprint('api', __name__)
 
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
-
-upload_folder = current_app.config['UPLOAD_FOLDER']
+upload_folder = 'files' # this can be changed for another version of API
+maxFileSize = current_app.config['MAX_CONTENT_LENGTH']
+allowed_extensions = current_app.config['ALLOWED_EXTENSIONS']
 
 # Root of the app
 @api.route("/")
@@ -37,15 +38,20 @@ def upload_file():
 
     filename = secure_filename(file.filename)
     ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
-    if ext not in ALLOWED_EXTENSIONS:
+    if len(allowed_extensions) > 0 and ext not in allowed_extensions:
         return Message.BAD_EXTENTION.value.format(ext), http.client.UNPROCESSABLE_ENTITY
 
     dir_list = os.listdir(upload_folder)
     if filename in dir_list:
-        return Message.FILE_EXISTS.value.format(filename), http.client.UNPROCESSABLE_ENTITY
+        return Message.FILE_EXISTS.value.format(filename), http.client.FORBIDDEN
 
-    file.save(os.path.join(upload_folder, filename))
-    return Message.UPLOADED_SUCCESSFULLY.value.format(filename), http.client.CREATED
+    try:
+        file.save(os.path.join(upload_folder, filename))
+        return Message.UPLOADED_SUCCESSFULLY.value.format(filename), http.client.CREATED
+    except werkzeug.exceptions.RequestEntityTooLarge:
+        fileSizeM = maxFileSize / (1024 * 1024)
+        return Message.TOO_LARGE.value.format(filename, fileSizeM), http.client.REQUEST_ENTITY_TOO_LARGE
+    
 
 
 # Delete file

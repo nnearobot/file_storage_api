@@ -3,8 +3,15 @@ import os
 
 app = Flask(__name__)
 
-app.config['UPLOAD_FOLDER'] = 'files'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
+# Limit uploaded file size, M
+max_file_size = 50
+
+# List of the allowe file extensions, i.g. {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+allowed_extensions = {}
+
+
+app.config['MAX_CONTENT_LENGTH'] = max_file_size * 1024 * 1024
+app.config['ALLOWED_EXTENSIONS'] = allowed_extensions
 
 with app.app_context():
     from api.v1.routes import api as v1
@@ -21,6 +28,3 @@ from api.v2 import api as api_v2
 app.register_blueprint(api_v2, url_prefix='/v2')
 """
 
-
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
